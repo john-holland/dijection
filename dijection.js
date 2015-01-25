@@ -10,12 +10,30 @@
         var _ = require('underscore');
     }
     
-    function DI(func) {
+    function isArray(array) {
+        return typeof array === 'object' && typeof array.length !== 'undefined' && typeof array.indexOf === 'function';
+    }
+    
+    function DI() {
         if (!DI.registry) {
             DI.registry = { };
         }
         
-        if (!func || !(typeof func == 'function' || typeof func == 'object')) {
+        //todo: use the shim to dictate the metadata for the arguments, names of services, and "param" for params.
+        var shim = [],
+            func = null;
+        if (arguments.length > 1) {
+            if (isArray(arguments[0]) && typeof arguments[1] === 'function') {
+                shim = arguments[0];
+                func = arguments[1];
+            }
+        } else if (arguments.length === 1) {
+            if (typeof arguments[0] === 'function') {
+                func = arguments[0];
+            }
+        }
+        
+        if (!func) {
             return null;
         }
         

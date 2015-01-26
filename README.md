@@ -22,28 +22,6 @@ var injected = DI(function(_serviceB) {
 console.log(injected()); //outputs 4!
 ```
 
-Any parameter not prefixed with '\_' or '$', will be assumed to be a function parameter for the returned injected method:
-
-```javascript
-DI.register("serviceA", {
-    method: function() {
-        return 1;
-    }
-});
-
-DI.register("serviceB", DI(function(_serviceA) {
-    return _serviceA.method() + 1;
-}));
-
-//injected dependencies will be omitted from the parameter list for the returned function
-var injected = DI(function(parameter, _serviceB, anotherParam, yetAnother) {
-    //any parameters that are not passed in when the injected function is called will be passed as undefined.
-    return _serviceB() + parameter + anotherParam + yetAnother;
-});
-
-console.log(injected(5, 1)); //outputs 8!
-```
-
 Dijection uses the '$' prefix to inject all dependencies with that name.
 
 ```javascript
@@ -70,4 +48,52 @@ var injected = DI(function(_service, $service) {
     
     console.log(sum); //6!
 });
+```
+
+Any parameter not prefixed with '\_' or '$', will be assumed to be a function parameter for the returned injected method:
+
+```javascript
+DI.register("serviceA", {
+    method: function() {
+        return 1;
+    }
+});
+
+DI.register("serviceB", DI(function(_serviceA) {
+    return _serviceA.method() + 1;
+}));
+
+//injected dependencies will be omitted from the parameter list for the returned function
+var injected = DI(function(parameter, _serviceB, anotherParam, yetAnother) {
+    //any parameters that are not passed in when the injected function is called will be passed as undefined.
+    return _serviceB() + parameter + anotherParam + yetAnother;
+});
+
+console.log(injected(5, 1)); //outputs 8!
+```
+
+##Minification support
+
+To support javascript minification, a paramter shim can be used to inform Dijection of what needs to be done for the function's parameter list.
+The upside of shimming the parameter list, is being able to use it to alias dependency names -- the downside is that the order of the shim parameters and parameter list much be the same.
+
+```javascript
+//this is the same as the example above, but using shims.
+DI.register("serviceA", {
+    method: function() {
+        return 1;
+    }
+});
+
+DI.register("serviceB", DI(["serviceA"], function(service) {
+    return service.method() + 1;
+}));
+
+//The same prefixes are used for the parameter shim, along with non-prefixed parameters creating the partial function.
+var injected = DI(["param", "_serviceB", "param", "param"], function(parameter, shimmedService, anotherParam, yetAnother) {
+    //note that _serviceB is aliased "shimmedService" and does not need a prefix since the shim provides the '_' prefix to let dijection know it should be injected.
+    return shimmedService() + parameter + anotherParam + yetAnother;
+});
+
+console.log(injected(5, 1)); //outputs 8!
 ```

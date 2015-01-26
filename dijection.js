@@ -20,7 +20,7 @@
         }
         
         //todo: use the shim to dictate the metadata for the arguments, names of services, and "param" for params.
-        var shim = [],
+        var shim = null,
             func = null;
         if (arguments.length > 1) {
             if (isArray(arguments[0]) && typeof arguments[1] === 'function') {
@@ -37,7 +37,7 @@
             return null;
         }
         
-        var args = func.toString().match(FN_ARGS)[1].split(/\s*,\s*/),
+        var args = !!shim ? shim : func.toString().match(FN_ARGS)[1].split(/\s*,\s*/),
             paramPosition = 0,
             metadatas = _.map(args, function(arg) {
                 var argMetadata = {
@@ -87,6 +87,16 @@
         DI.registry[lowerName] = DI.registry[lowerName] || [];
         
         DI.registry[lowerName].unshift(value);
+    }
+    
+    DI.deregister = function(name) {
+        if (!DI.registry) {
+            return;
+        }
+        var lowerName = name.toLowerCase().trim();
+        if (lowerName in DI.registry) {
+            DI.registry[lowerName] = [];
+        }
     }
     
     if (typeof module !== 'undefined' && module.exports) {

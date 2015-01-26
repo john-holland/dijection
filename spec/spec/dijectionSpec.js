@@ -73,4 +73,50 @@ describe("Dijection", function() {
     
     expect(injected(5)).toEqual(7);
   });
+  
+  it('should be able to deregister dependencies', function() {
+    DI.register("aTemporaryService", function() {
+      return "I'm only useful for a while!";
+    });
+    
+    expect(DI(function($aTemporaryService) {
+      return $aTemporaryService.length;
+    })()).toEqual(1);
+    
+    DI.deregister("aTemporaryService");
+    
+    expect(DI(function($aTemporaryService) {
+      return $aTemporaryService.length;
+    })()).toEqual(0);
+  })
+  
+  describe("shim support for minification", function() {
+    it("should be able to shim arguments", function() {
+      DI.register("someService", function() {
+        return "shim successful";
+      })
+      
+      var shimmedInjected = DI(['_someService', 'param'], function(x, y) {
+        return x() + y;
+      });
+      
+      expect(shimmedInjected(5)).toEqual("shim successful5");
+    });
+    
+    it("should be able to shim dependencies", function() {
+      DI.register("shimmedService", function() {
+        return "shim successful";
+      })
+      
+      DI.register("shimmedService", function() {
+        return "shim successful";
+      })
+      
+      var shimmedInjected = DI(['$shimmedService', 'param'], function(x, y) {
+        return x.length + " " + y;
+      });
+      
+      expect(shimmedInjected(5)).toEqual("2 5");
+    });
+  });
 });

@@ -75,7 +75,7 @@ console.log(injected(5, 1)); //outputs 8!
 ##Minification support
 
 To support javascript minification, a paramter shim can be used to inform Dijection of what needs to be done for the function's parameter list.
-The upside of shimming the parameter list, is being able to use it to alias dependency names -- the downside is that the order of the shim parameters and parameter list much be the same.
+The upside of shimming the parameter list, is being able to use it to alias dependency names -- the downside is that the order of the shim parameter list and the function parameter list must be the same.
 
 ```javascript
 //this is the same as the example above, but using shims.
@@ -89,9 +89,11 @@ DI.register("serviceB", DI(["serviceA"], function(service) {
     return service.method() + 1;
 }));
 
-//The same prefixes are used for the parameter shim, along with non-prefixed parameters creating the partial function.
+//The same prefixes are used for the parameter shim, along with non-prefixed parameters 
+//  creating the partial function.
 var injected = DI(["param", "_serviceB", "param", "param"], function(parameter, shimmedService, anotherParam, yetAnother) {
-    //note that _serviceB is aliased "shimmedService" and does not need a prefix since the shim provides the '_' prefix to let dijection know it should be injected.
+    //note that _serviceB is aliased "shimmedService" and does not need a prefix 
+    //  since the shim provides the '_' prefix to let dijection know it should be injected.
     return shimmedService() + parameter + anotherParam + yetAnother;
 });
 

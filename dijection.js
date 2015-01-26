@@ -1,3 +1,8 @@
+/***
+ * Dijection, a small dependency injection container.
+ * 
+ * By John Holland, licensed MIT
+ */
 +function() {
     "use strict";
     //from http://merrickchristensen.com/articles/javascript-dependency-injection.html
@@ -7,7 +12,7 @@
         _ = '_' in this ? this._ : null;
 
     if (typeof _ !== 'function' && typeof require === 'function') {
-        var _ = require('underscore');
+        _ = require('underscore');
     }
     
     function isArray(array) {

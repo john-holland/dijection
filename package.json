@@ -1,6 +1,6 @@
 {
   "name": "dijection",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Dijection is a small javascript dependency injection library that relies on parsing the result of the passed in function.toString().",
   "main": "dijection.js",
   "repository": "https://github.com/john-holland/dijection",

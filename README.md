@@ -89,7 +89,7 @@ module.exports = DI({
     "escapedDatasource": DI(function(_datasource, appender) {
         return escape(_datasource + (appender ? appender : ""));
     }),
-    "datasource": "http://github.com/john-holland"
+    "datasource": "https://github.com/john-holland"
 });
 ```
 
@@ -98,9 +98,9 @@ Use the dependency injection container exposed by your context file:
 var DI = require("./context");
 
 DI(function(_escapedDatasource, _datasource) {
-    console.log(_datasource + " " + _escapedDatasource());
+    console.log(_datasource + " " + _escapedDatasource("/dijection"));
 })();
-//outputs: http://github.com/john-holland http%3A//github.com/john-holland/dijection
+//outputs: https://github.com/john-holland https%3A//github.com/john-holland/dijection
 ```
 
 

@@ -119,4 +119,25 @@ describe("Dijection", function() {
       expect(shimmedInjected(5)).toEqual("2 5");
     });
   });
+  
+  describe("context file sugar", function() {
+    it("should register all depedencies", function() {
+      DI({
+        a: {
+          someData: "data"
+        },
+        b: {
+          someMoreData: "other data"
+        }
+      });
+      
+      expect(DI(function($a) {
+        return $a.length;
+      })()).toEqual(1);
+      
+      expect(DI(function($b) {
+        return $b.length;
+      })()).toEqual(1);
+    });
+  });
 });

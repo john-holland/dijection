@@ -15,8 +15,10 @@
         _ = require('underscore');
     }
     
-    function isArray(array) {
-        return typeof array === 'object' && typeof array.length !== 'undefined' && typeof array.indexOf === 'function';
+    if (!Array.isArray) {
+      Array.isArray = function(arg) {
+        return Object.prototype.toString.call(arg) === '[object Array]';
+      };
     }
     
     function DI() {
@@ -28,13 +30,23 @@
         var shim = null,
             func = null;
         if (arguments.length > 1) {
-            if (isArray(arguments[0]) && typeof arguments[1] === 'function') {
+            if (Array.isArray(arguments[0]) && typeof arguments[1] === 'function') {
                 shim = arguments[0];
                 func = arguments[1];
             }
         } else if (arguments.length === 1) {
             if (typeof arguments[0] === 'function') {
                 func = arguments[0];
+            } else if (typeof arguments[0] === 'object' && !Array.isArray(arguments[0])) {
+                var toRegister = arguments[0];
+                
+                for (var dependency in toRegister) {
+                    if (toRegister.hasOwnProperty(dependency)) {
+                        DI.register(dependency, toRegister[dependency]);
+                    }
+                }
+                
+                return DI;
             }
         }
         

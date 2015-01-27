@@ -1,4 +1,4 @@
-var DI = require("../dijection");
+var DI = require("../dijection")();
     
 module.exports = DI({
     "escapedDatasource": DI(function(_datasource, appender) {

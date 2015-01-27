@@ -1,9 +1,10 @@
 describe("Dijection", function() {
   "use strict";
+  var DI = null;
   if (typeof require === 'function') {
-    var DI = require("../../dijection.js");
-  } else if (typeof window.DI !== 'undefined') {
-    var DI = window.DI;
+    DI = require("../../dijection.js")();
+  } else if (typeof window.Dijection !== 'undefined') {
+    DI = window.Dijection();
   }
   
   it('should be defined as DI', function() {

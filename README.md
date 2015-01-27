@@ -1,10 +1,11 @@
 #Dijection
-
 Dijection is a small javascript dependency injection library that relies on parsing function parameter lists for dependency declaration.
 
 By default, Dijection uses the '\_' prefix to check for dependencies:
 
 ```javascript
+var DI = require("dijection")(); //or window.Dijection();
+
 DI.register("serviceA", {
     method: function() {
         return 1;
@@ -25,6 +26,8 @@ console.log(injected()); //outputs 4!
 Dijection uses the '$' prefix to inject all dependencies with that name.
 
 ```javascript
+var DI = require("dijection")(); //or window.Dijection();
+
 DI.register("service", {
     method: function() {
         return 1;
@@ -53,6 +56,8 @@ var injected = DI(function(_service, $service) {
 Any parameter not prefixed with '\_' or '$', will be assumed to be a function parameter for the returned injected method:
 
 ```javascript
+var DI = require("dijection")(); //or window.Dijection();
+
 DI.register("serviceA", {
     method: function() {
         return 1;
@@ -72,12 +77,41 @@ var injected = DI(function(parameter, _serviceB, anotherParam, yetAnother) {
 console.log(injected(5, 1)); //outputs 8!
 ```
 
+##Context Files
+
+Setup your context file:
+```javascript
+var DI = require("dijection")(); //or window.Dijection();
+
+//make sure to return your dependency injection container as your module output
+//  Pass an object into DI, where each property value pair is a dependency.
+module.exports = DI({
+    "escapedDatasource": DI(function(_datasource, appender) {
+        return escape(_datasource + (appender ? appender : ""));
+    }),
+    "datasource": "http://github.com/john-holland"
+});
+```
+
+Use the dependency injection container exposed by your context file:
+```javascript
+var DI = require("./context");
+
+DI(function(_escapedDatasource) {
+    console.log(_escapedDatasource);
+});
+//outputs: http://github.com/john-holland http%3A//github.com/john-holland/dijection
+```
+
+
 ##Minification support
 
 To support javascript minification, a paramter shim can be used to inform Dijection of what needs to be done for the function's parameter list.
 The upside of shimming the parameter list, is being able to use it to alias dependency names -- the downside is that the order of the shim parameter list and the function parameter list must be the same.
 
 ```javascript
+var DI = require("dijection")(); //or window.Dijection();
+
 //this is the same as the example above, but using shims.
 DI.register("serviceA", {
     method: function() {

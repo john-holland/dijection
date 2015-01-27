@@ -20,107 +20,110 @@
         return Object.prototype.toString.call(arg) === '[object Array]';
       };
     }
-    
-    function DI() {
-        if (!DI.registry) {
-            DI.registry = { };
-        }
-        
-        //todo: use the shim to dictate the metadata for the arguments, names of services, and "param" for params.
-        var shim = null,
-            func = null;
-        if (arguments.length > 1) {
-            if (Array.isArray(arguments[0]) && typeof arguments[1] === 'function') {
-                shim = arguments[0];
-                func = arguments[1];
+    function DIFactory() {
+        var di = function DI() {
+            if (!di.registry) {
+                di.registry = { };
             }
-        } else if (arguments.length === 1) {
-            if (typeof arguments[0] === 'function') {
-                func = arguments[0];
-            } else if (typeof arguments[0] === 'object' && !Array.isArray(arguments[0])) {
-                var toRegister = arguments[0];
-                
-                for (var dependency in toRegister) {
-                    if (toRegister.hasOwnProperty(dependency)) {
-                        DI.register(dependency, toRegister[dependency]);
+            
+            //todo: use the shim to dictate the metadata for the arguments, names of services, and "param" for params.
+            var shim = null,
+                func = null;
+            if (arguments.length > 1) {
+                if (Array.isArray(arguments[0]) && typeof arguments[1] === 'function') {
+                    shim = arguments[0];
+                    func = arguments[1];
+                }
+            } else if (arguments.length === 1) {
+                if (typeof arguments[0] === 'function') {
+                    func = arguments[0];
+                } else if (typeof arguments[0] === 'object' && !Array.isArray(arguments[0])) {
+                    var toRegister = arguments[0];
+                    
+                    for (var dependency in toRegister) {
+                        if (toRegister.hasOwnProperty(dependency)) {
+                            di.register(dependency, toRegister[dependency]);
+                        }
                     }
+                    
+                    return di;
                 }
+            }
+            
+            if (!func) {
+                return null;
+            }
+            
+            var args = !!shim ? shim : func.toString().match(FN_ARGS)[1].split(/\s*,\s*/),
+                paramPosition = 0,
+                metadatas = _.map(args, function(arg) {
+                    var argMetadata = {
+                        arg: arg,
+                        inject: _.any(injectPrefix, function(prefix) { return arg.indexOf(prefix) == 0; }),
+                        injectDependencies: _.any(dependenciesPrefix, function(prefix) { return arg.indexOf(prefix) == 0 })
+                    };
+                    
+                    if (argMetadata.inject && argMetadata.injectDependencies) {
+                        console.error('Injection prefix collision, treating ' + arg + ' as a parameter');
+                        argMetadata.inject = false;
+                        argMetadata.injectDependencies = false;
+                    }
+                    
+                    if (!argMetadata.inject && !argMetadata.injectDependencies) {
+                        argMetadata.paramPosition = paramPosition;
+                        paramPosition++;
+                    } else if (argMetadata.inject) {
+                        argMetadata.name = arg.replace(_.find(injectPrefix, function(prefix) { return arg.indexOf(prefix) == 0; }), '').toLowerCase().trim();
+                    } else if (argMetadata.injectDependencies) {
+                        argMetadata.name = arg.replace(_.find(dependenciesPrefix, function(prefix) { return arg.indexOf(prefix) == 0 }), '').toLowerCase().trim();
+                    }
+                    
+                    return argMetadata;
+                });
                 
-                return DI;
+            return function() {
+                var argumentsCopy = Array.prototype.slice.call(arguments);
+                
+                return func.apply(this, _.map(metadatas, function(metadata) {
+                    if (metadata.inject) {
+                        return di.registry[metadata.name] && di.registry[metadata.name].length ? di.registry[metadata.name][0] : undefined;
+                    } else if (metadata.injectDependencies) {
+                        return di.registry[metadata.name] ? di.registry[metadata.name] : [];
+                    } else if ('paramPosition' in metadata) {
+                        return argumentsCopy.length && argumentsCopy.length > metadata.paramPosition ? argumentsCopy[metadata.paramPosition] : undefined;
+                    } else {
+                        return undefined;
+                    }
+                }));
+            };
+        }
+        
+        di.register = function(name, value) {
+            if (!di.registry) di.registry = { };
+            var lowerName = name.toLowerCase().trim();
+            di.registry[lowerName] = di.registry[lowerName] || [];
+            
+            di.registry[lowerName].unshift(value);
+        }
+        
+        di.deregister = function(name) {
+            if (!di.registry) {
+                return;
+            }
+            var lowerName = name.toLowerCase().trim();
+            if (lowerName in di.registry) {
+                di.registry[lowerName] = [];
             }
         }
         
-        if (!func) {
-            return null;
-        }
+        return di;
+    }
         
-        var args = !!shim ? shim : func.toString().match(FN_ARGS)[1].split(/\s*,\s*/),
-            paramPosition = 0,
-            metadatas = _.map(args, function(arg) {
-                var argMetadata = {
-                    arg: arg,
-                    inject: _.any(injectPrefix, function(prefix) { return arg.indexOf(prefix) == 0; }),
-                    injectDependencies: _.any(dependenciesPrefix, function(prefix) { return arg.indexOf(prefix) == 0 })
-                };
-                
-                if (argMetadata.inject && argMetadata.injectDependencies) {
-                    console.error('Injection prefix collision, treating ' + arg + ' as a parameter');
-                    argMetadata.inject = false;
-                    argMetadata.injectDependencies = false;
-                }
-                
-                if (!argMetadata.inject && !argMetadata.injectDependencies) {
-                    argMetadata.paramPosition = paramPosition;
-                    paramPosition++;
-                } else if (argMetadata.inject) {
-                    argMetadata.name = arg.replace(_.find(injectPrefix, function(prefix) { return arg.indexOf(prefix) == 0; }), '').toLowerCase().trim();
-                } else if (argMetadata.injectDependencies) {
-                    argMetadata.name = arg.replace(_.find(dependenciesPrefix, function(prefix) { return arg.indexOf(prefix) == 0 }), '').toLowerCase().trim();
-                }
-                
-                return argMetadata;
-            });
-            
-        return function() {
-            var argumentsCopy = Array.prototype.slice.call(arguments);
-            
-            return func.apply(this, _.map(metadatas, function(metadata) {
-                if (metadata.inject) {
-                    return DI.registry[metadata.name] && DI.registry[metadata.name].length ? DI.registry[metadata.name][0] : undefined;
-                } else if (metadata.injectDependencies) {
-                    return DI.registry[metadata.name] ? DI.registry[metadata.name] : [];
-                } else if ('paramPosition' in metadata) {
-                    return argumentsCopy.length && argumentsCopy.length > metadata.paramPosition ? argumentsCopy[metadata.paramPosition] : undefined;
-                } else {
-                    return undefined;
-                }
-            }));
-        };
-    }
-    
-    DI.register = function(name, value) {
-        if (!DI.registry) DI.registry = { };
-        var lowerName = name.toLowerCase().trim();
-        DI.registry[lowerName] = DI.registry[lowerName] || [];
-        
-        DI.registry[lowerName].unshift(value);
-    }
-    
-    DI.deregister = function(name) {
-        if (!DI.registry) {
-            return;
-        }
-        var lowerName = name.toLowerCase().trim();
-        if (lowerName in DI.registry) {
-            DI.registry[lowerName] = [];
-        }
-    }
-    
     if (typeof module !== 'undefined' && module.exports) {
-        module.exports = DI;
+        module.exports = DIFactory;
     } else if (typeof define !== 'undefined' && define.amd) {
-        define('dijection', [], DI);
+        define('dijection', [], DIFactory);
     } else {
-        this.DI = DI;
+        this.Dijection = DIFactory;
     }
 }.call(this);

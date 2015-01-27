@@ -97,17 +97,17 @@ Use the dependency injection container exposed by your context file:
 ```javascript
 var DI = require("./context");
 
-DI(function(_escapedDatasource) {
-    console.log(_escapedDatasource);
-});
+DI(function(_escapedDatasource, _datasource) {
+    console.log(_datasource + " " + _escapedDatasource());
+})();
 //outputs: http://github.com/john-holland http%3A//github.com/john-holland/dijection
 ```
 
 
 ##Minification support
 
-To support javascript minification, a paramter shim can be used to inform Dijection of what needs to be done for the function's parameter list.
-The upside of shimming the parameter list, is being able to use it to alias dependency names -- the downside is that the order of the shim parameter list and the function parameter list must be the same.
+To support javascript minification, a parameter shim can be used to inform Dijection of what needs to be done for the function's parameter list.
+The upside of shimming the parameter list is being able to use it to alias dependency names -- the downside is that the order of the shim parameter list and the function parameter list must be the same.
 
 ```javascript
 var DI = require("dijection")(); //or window.Dijection();

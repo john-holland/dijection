@@ -26,7 +26,6 @@
                 di.registry = { };
             }
             
-            //todo: use the shim to dictate the metadata for the arguments, names of services, and "param" for params.
             var shim = null,
                 func = null;
             if (arguments.length > 1) {

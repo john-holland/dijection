@@ -1,4 +1,4 @@
-#Dijection
+# Dijection
 
 Dijection is a small javascript dependency injection library that relies on parsing function parameter lists for dependency declaration.
 
@@ -78,7 +78,7 @@ var injected = DI(function(parameter, _serviceB, anotherParam, yetAnother) {
 console.log(injected(5, 1)); //outputs 8!
 ```
 
-##Context Files
+## Context Files
 
 Setup your context file:
 ```javascript
@@ -105,7 +105,7 @@ DI(function(_escapedDatasource, _datasource) {
 ```
 
 
-##Minification support
+## Minification support
 
 To support javascript minification, a parameter shim can be used to inform Dijection of what needs to be done for the function's parameter list.
 The upside of shimming the parameter list is being able to use it to alias dependency names -- the downside is that the order of the shim parameter list and the function parameter list must be the same.
